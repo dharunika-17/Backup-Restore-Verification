@@ -1,0 +1,791 @@
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VaultSafe | Backup & Restore</title>
+
+<style>
+:root {
+  --navy: #20213f;
+  --purple: #7856d8;
+  --teal: #16a995;
+  --coral: #ff8066;
+  --yellow: #f5bd4f;
+  --bg: #f5f3fb;
+  --text: #282744;
+  --muted: #85839b;
+  --white: #ffffff;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: "Segoe UI", Arial, sans-serif;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 5% 5%, #e8dcff 0, transparent 28%),
+    radial-gradient(circle at 95% 85%, #d5f7ed 0, transparent 28%),
+    var(--bg);
+  min-height: 100vh;
+}
+
+button, input { font: inherit; }
+
+.layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.sidebar {
+  width: 235px;
+  background: var(--navy);
+  color: white;
+  padding: 28px 18px;
+  flex-shrink: 0;
+}
+
+.logo {
+  font-size: 23px;
+  font-weight: 800;
+  margin: 0 0 7px;
+  letter-spacing: -.7px;
+}
+
+.logo span { color: #a994ff; }
+
+.tagline {
+  color: #b6b5d0;
+  font-size: 12px;
+  margin-bottom: 38px;
+}
+
+.nav-label {
+  color: #a9a6c4;
+  font-size: 11px;
+  letter-spacing: 1.5px;
+  margin: 25px 10px 12px;
+}
+
+.nav-item {
+  padding: 13px 12px;
+  margin: 7px 0;
+  border-radius: 10px;
+  color: #e4e0ff;
+  font-size: 14px;
+}
+
+.nav-item.active {
+  background: linear-gradient(100deg, #7657d7, #9979ed);
+  color: white;
+}
+
+.side-note {
+  margin-top: 65px;
+  background: #303052;
+  border: 1px solid #454568;
+  border-radius: 14px;
+  padding: 15px;
+  font-size: 12px;
+  line-height: 1.6;
+  color: #d9d7f4;
+}
+
+main {
+  flex: 1;
+  min-width: 0;
+  padding: 30px;
+  max-width: 1500px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.topbar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 15px;
+  margin-bottom: 28px;
+}
+
+.eyebrow {
+  color: var(--purple);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 1.8px;
+}
+
+h1 {
+  font-size: clamp(25px, 3vw, 35px);
+  margin: 7px 0;
+  letter-spacing: -1px;
+}
+
+.subtitle {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+
+.pill {
+  padding: 10px 14px;
+  border-radius: 30px;
+  background: #dcf8ed;
+  color: #087e68;
+  font-size: 12px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.pill.offline {
+  background: #ffe3dd;
+  color: #b43e30;
+}
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  margin: 25px 0;
+}
+
+.stat {
+  background: white;
+  border-radius: 17px;
+  padding: 21px;
+  box-shadow: 0 8px 30px #34225b0b;
+  border: 1px solid #ffffff;
+  transition: transform .2s;
+}
+
+.stat:hover { transform: translateY(-4px); }
+
+.stat-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 13px;
+  display: grid;
+  place-items: center;
+  font-size: 21px;
+  margin-bottom: 17px;
+}
+
+.purple { background: #eee6ff; }
+.green { background: #d9f8ed; }
+.orange { background: #ffeadc; }
+.yellow { background: #fff2c9; }
+
+.stat-label { color: var(--muted); font-size: 12px; }
+.stat-number { font-size: 30px; font-weight: 800; margin-top: 6px; }
+
+.grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(260px, .9fr);
+  gap: 19px;
+}
+
+.panel {
+  background: white;
+  border: 1px solid #ece9f5;
+  border-radius: 19px;
+  padding: 23px;
+  margin-bottom: 19px;
+  box-shadow: 0 8px 30px #34225b08;
+  min-width: 0;
+}
+
+.panel h2 {
+  font-size: 17px;
+  margin: 0 0 7px;
+}
+
+.panel-desc {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.6;
+  margin-bottom: 20px;
+}
+
+.upload-zone {
+  display: block;
+  text-align: center;
+  padding: 27px 12px;
+  border: 2px dashed #c9b8f3;
+  background: #faf8ff;
+  border-radius: 15px;
+  cursor: pointer;
+  transition: .2s;
+}
+
+.upload-zone:hover {
+  border-color: var(--purple);
+  background: #f1eaff;
+}
+
+.upload-icon { font-size: 34px; margin-bottom: 10px; }
+
+.upload-zone strong { display: block; font-size: 14px; }
+
+.upload-zone small {
+  display: block;
+  color: var(--muted);
+  margin-top: 8px;
+}
+
+#files { display: none; }
+
+.selected-files {
+  color: var(--purple);
+  font-size: 12px;
+  margin: 12px 0;
+  overflow-wrap: anywhere;
+}
+
+button {
+  border: none;
+  border-radius: 10px;
+  padding: 12px 15px;
+  cursor: pointer;
+  font-weight: 700;
+  font-size: 13px;
+  transition: .2s;
+}
+
+button:hover { filter: brightness(.96); transform: translateY(-1px); }
+button:disabled { opacity: .6; cursor: wait; transform: none; }
+
+.btn-purple { background: var(--purple); color: white; }
+.btn-teal { background: var(--teal); color: white; }
+.btn-coral { background: var(--coral); color: white; }
+.btn-dark { background: var(--navy); color: white; }
+.btn-light { background: #f0edf8; color: #514778; }
+
+.full { width: 100%; margin-top: 10px; }
+
+.action-list {
+  display: grid;
+  gap: 11px;
+}
+
+.action-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 13px;
+  border: 1px solid #eeebf6;
+  border-radius: 13px;
+}
+
+.action-symbol {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  display: grid;
+  place-items: center;
+  font-size: 20px;
+  flex-shrink: 0;
+}
+
+.action-info { flex: 1; min-width: 0; }
+.action-info strong { font-size: 13px; display: block; }
+.action-info small { color: var(--muted); font-size: 11px; display: block; margin-top: 5px; }
+
+.action-row button { padding: 10px 12px; }
+
+.inventory-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.file-list { display: grid; gap: 9px; }
+
+.file-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border-radius: 11px;
+  background: #faf9fd;
+  border: 1px solid #f0edf7;
+}
+
+.file-icon {
+  background: #eee8ff;
+  padding: 9px;
+  border-radius: 9px;
+}
+
+.file-name {
+  font-size: 12px;
+  font-weight: 700;
+  overflow-wrap: anywhere;
+}
+
+.file-status {
+  margin-left: auto;
+  color: #0c947a;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.empty {
+  text-align: center;
+  padding: 22px 10px;
+  color: var(--muted);
+  font-size: 13px;
+}
+
+.activity {
+  display: flex;
+  gap: 11px;
+  padding: 12px 0;
+  border-bottom: 1px solid #f0edf6;
+  font-size: 12px;
+}
+
+.activity:last-child { border: 0; }
+.activity-dot { color: var(--teal); font-size: 16px; }
+.activity-time { color: var(--muted); font-size: 11px; margin-top: 5px; }
+
+.result-banner {
+  display: none;
+  border-radius: 15px;
+  padding: 17px 20px;
+  margin: 20px 0;
+  align-items: center;
+  gap: 13px;
+  animation: appear .25s ease-out;
+}
+
+.result-banner.show { display: flex; }
+.result-banner.success { background: #dff8ed; border: 1px solid #a9e9d3; color: #086b55; }
+.result-banner.error { background: #ffe7e1; border: 1px solid #ffc2b5; color: #a33425; }
+
+.result-symbol { font-size: 27px; }
+.result-title { font-weight: 800; font-size: 14px; }
+.result-detail { font-size: 12px; margin-top: 4px; line-height: 1.5; }
+
+.footer {
+  text-align: center;
+  color: var(--muted);
+  font-size: 11px;
+  padding: 18px;
+}
+
+@keyframes appear {
+  from { opacity: 0; transform: translateY(5px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 1000px) {
+  .sidebar { width: 185px; }
+  .stats { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .grid { grid-template-columns: 1fr; }
+}
+
+@media (max-width: 650px) {
+  .layout { display: block; }
+  .sidebar { width: 100%; padding: 18px; }
+  .tagline { margin-bottom: 12px; }
+  .nav-label, .nav-item, .side-note { display: none; }
+  main { padding: 18px; }
+  .topbar { align-items: flex-start; }
+  .pill { font-size: 10px; }
+  .stats { gap: 10px; }
+  .stat { padding: 15px; }
+  .stat-number { font-size: 25px; }
+  .panel { padding: 17px; }
+  .action-row { flex-wrap: wrap; }
+  .action-row button { margin-left: 54px; }
+}
+</style>
+</head>
+
+<body>
+<div class="layout">
+
+<aside class="sidebar">
+  <div class="logo">Vault<span>Safe</span> ✦</div>
+  <div class="tagline">Backup & Recovery Center</div>
+
+  <div class="nav-label">WORKSPACE</div>
+  
+<div class="nav-item active" onclick="showSection('dashboard', this)">▦ &nbsp; Dashboard</div>
+<div class="nav-item" onclick="showSection('documents', this)">▤ &nbsp; Documents</div>
+<div class="nav-item" onclick="showSection('backup', this)">◈ &nbsp; Backup Center</div>
+<div class="nav-item" onclick="showSection('verification', this)">✓ &nbsp; Verification</div>
+
+
+  <div class="side-note">
+    ✦ <strong>Stay protected</strong><br>
+    Always create and confirm your backup before removing original files.
+  </div>
+</aside>
+
+<main>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">YOUR WORKSPACE</div>
+      <h1>Backup Dashboard ✨</h1>
+      <div class="subtitle">Manage documents, protect files and restore missing data.</div>
+    </div>
+    <div class="pill" id="connection">● Checking server...</div>
+  </header>
+
+  <section class="stats">
+    <div class="stat">
+      <div class="stat-icon purple">▤</div>
+      <div class="stat-label">Original Documents</div>
+      <div class="stat-number" id="originalCount">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon green">☁</div>
+      <div class="stat-label">Backup Documents</div>
+      <div class="stat-number" id="backupCount">—</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon orange">↻</div>
+      <div class="stat-label">Files Restored</div>
+      <div class="stat-number" id="restoreCount">0</div>
+    </div>
+    <div class="stat">
+      <div class="stat-icon yellow">✓</div>
+      <div class="stat-label">Last Verification</div>
+      <div class="stat-number" id="verifyStatus" style="font-size:21px">Pending</div>
+    </div>
+  </section>
+
+  <div id="resultBanner" class="result-banner" role="status" aria-live="polite">
+    <div class="result-symbol" id="resultSymbol">✓</div>
+    <div>
+      <div class="result-title" id="resultTitle">Operation Successful!</div>
+      <div class="result-detail" id="resultDetail"></div>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div>
+      <section class="panel">
+        <h2>Upload Documents 📂</h2>
+        <div class="panel-desc">Select one or more documents to add to your workspace.</div>
+
+        <label for="files" class="upload-zone">
+          <div class="upload-icon">📥</div>
+          <strong>Click here to choose files</strong>
+          <small>Choose multiple files at once</small>
+        </label>
+        <input type="file" id="files" multiple>
+        <div class="selected-files" id="selectedFiles">No files selected</div>
+        <button class="btn-purple full" id="uploadBtn" onclick="uploadFiles()">Upload Documents ↗</button>
+      </section>
+
+      <section class="panel">
+        <h2>Quick Actions ⚡</h2>
+        <div class="panel-desc">Your backup and recovery tools in one place.</div>
+
+        <div class="action-list">
+          <div class="action-row">
+            <div class="action-symbol purple">☁</div>
+            <div class="action-info">
+              <strong>Create Backup</strong>
+              <small>Save copies of your original documents</small>
+            </div>
+            <button class="btn-purple" id="backupBtn" onclick="runAction('/backup','POST','backup')">Backup</button>
+          </div>
+
+          <div class="action-row">
+            <div class="action-symbol orange">↻</div>
+            <div class="action-info">
+              <strong>Restore Missing Files</strong>
+              <small>Recover documents from your backup</small>
+            </div>
+            <button class="btn-coral" id="restoreBtn" onclick="runAction('/restore','POST','restore')">Restore</button>
+          </div>
+
+          <div class="action-row">
+            <div class="action-symbol green">✓</div>
+            <div class="action-info">
+              <strong>Verify Integrity</strong>
+              <small>Check that originals match backup copies</small>
+            </div>
+            <button class="btn-teal" id="verifyBtn" onclick="runAction('/verify','GET','verify')">Verify</button>
+          </div>
+        </div>
+      </section>
+    </div>
+
+    <div>
+      <section class="panel">
+        <div class="inventory-head">
+          <div>
+            <h2>File Inventory</h2>
+            <div class="panel-desc" style="margin:6px 0 0">Current original and backup files</div>
+          </div>
+          <button class="btn-light" onclick="refreshFiles()">↻ Refresh</button>
+        </div>
+
+        <h3 style="font-size:12px;color:#7856d8">ORIGINAL DOCUMENTS</h3>
+        <div class="file-list" id="originalList">
+          <div class="empty">Loading documents...</div>
+        </div>
+
+        <h3 style="font-size:12px;color:#0b9d83;margin-top:25px">BACKUP COPIES</h3>
+        <div class="file-list" id="backupList">
+          <div class="empty">Loading backups...</div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h2>Recent Activity ◷</h2>
+        <div class="panel-desc">Latest actions in this session</div>
+        <div id="activityList">
+          <div class="empty">Your activity will appear here.</div>
+        </div>
+      </section>
+    </div>
+  </div>
+
+  <div class="footer">VaultSafe · Backup & Restore Verification · Local Demo</div>
+</main>
+</div>
+
+<script>
+const $ = id => document.getElementById(id);
+
+function notify(success, title, detail = "") {
+  const banner = $("resultBanner");
+  banner.className = "result-banner show " + (success ? "success" : "error");
+  $("resultSymbol").textContent = success ? "✓" : "!";
+  $("resultTitle").textContent = title;
+  $("resultDetail").textContent = detail;
+}
+
+function addActivity(message, success = true) {
+  const list = $("activityList");
+
+  if (list.querySelector(".empty")) list.innerHTML = "";
+
+  const row = document.createElement("div");
+  row.className = "activity";
+
+  const dot = document.createElement("div");
+  dot.className = "activity-dot";
+  dot.textContent = success ? "●" : "●";
+
+  const content = document.createElement("div");
+  const title = document.createElement("div");
+  title.textContent = message;
+
+  const time = document.createElement("div");
+  time.className = "activity-time";
+  time.textContent = new Date().toLocaleTimeString();
+
+  content.append(title, time);
+  row.append(dot, content);
+  list.prepend(row);
+
+  while (list.children.length > 6) list.lastElementChild.remove();
+}
+
+function showFileList(elementId, files, isBackup) {
+  const container = $(elementId);
+  container.replaceChildren();
+
+  if (!files || files.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "empty";
+    empty.textContent = "No files found yet.";
+    container.appendChild(empty);
+    return;
+  }
+
+  files.forEach(name => {
+    const row = document.createElement("div");
+    row.className = "file-item";
+
+    const icon = document.createElement("div");
+    icon.className = "file-icon";
+    icon.textContent = isBackup ? "☁" : "📄";
+
+    const filename = document.createElement("div");
+    filename.className = "file-name";
+    filename.textContent = name;
+
+    const status = document.createElement("div");
+    status.className = "file-status";
+    status.textContent = "● Saved";
+
+    row.append(icon, filename, status);
+    container.appendChild(row);
+  });
+}
+
+async function refreshFiles() {
+  try {
+    const response = await fetch("/documents");
+    if (!response.ok) throw new Error();
+
+    const data = await response.json();
+
+    $("connection").textContent = "● System Online";
+    $("connection").className = "pill";
+
+    $("originalCount").textContent = data.document_count;
+    $("backupCount").textContent = data.backup_count;
+
+    showFileList("originalList", data.documents, false);
+    showFileList("backupList", data.backups, true);
+  } catch {
+    $("connection").textContent = "● Connection Error";
+    $("connection").className = "pill offline";
+    notify(false, "Unable to connect", "Check whether the FastAPI server is running.");
+  }
+}
+
+$("files").addEventListener("change", () => {
+  const files = [...$("files").files];
+  $("selectedFiles").textContent = files.length
+    ? files.length + " file(s) selected: " + files.map(f => f.name).join(", ")
+    : "No files selected";
+});
+
+async function uploadFiles() {
+  const files = [...$("files").files];
+
+  if (!files.length) {
+    notify(false, "Please select files", "Choose documents before uploading.");
+    return;
+  }
+
+  const form = new FormData();
+  files.forEach(file => form.append("files", file));
+
+  await requestAction("/upload", "POST", "upload", form);
+}
+
+async function runAction(endpoint, method, action) {
+  if (action === "backup" && Number($("originalCount").textContent) === 0) {
+    notify(false, "No documents to back up", "Upload your documents first.");
+    return;
+  }
+
+  if (action === "restore" && Number($("backupCount").textContent) === 0) {
+    notify(false, "No backup available", "Create a backup before restoring.");
+    return;
+  }
+
+  await requestAction(endpoint, method, action);
+}
+
+async function requestAction(endpoint, method, action, body = null) {
+  const buttons = ["uploadBtn", "backupBtn", "restoreBtn", "verifyBtn"];
+  buttons.forEach(id => $(id).disabled = true);
+
+  try {
+    const response = await fetch(endpoint, {
+      method,
+      body: body || undefined
+    });
+
+    const data = await response.json();
+
+    if (!response.ok) {
+      const detail = typeof data.detail === "string"
+        ? data.detail
+        : "Please check your files and try again.";
+      notify(false, "Operation not completed", detail);
+      addActivity("Operation failed", false);
+      return;
+    }
+
+    if (action === "upload") {
+      const count = data.count ?? filesCountFallback(body);
+      notify(true, "Upload Successful! ✓", count + " document(s) uploaded.");
+      addActivity("Documents uploaded successfully");
+      $("files").value = "";
+      $("selectedFiles").textContent = "No files selected";
+    }
+
+    if (action === "backup") {
+      notify(true, "Backup Created Successfully! ✓",
+        (data.count ?? 0) + " document(s) safely copied to the backup folder.");
+      addActivity("Backup created successfully");
+    }
+
+    if (action === "restore") {
+      const count = data.restored_count ?? 0;
+      $("restoreCount").textContent =
+        Number($("restoreCount").textContent || 0) + count;
+      notify(true, count > 0 ? "Restore Successful! ✓" : "Restore Checked ✓",
+        count > 0
+          ? count + " missing document(s) restored successfully."
+          : "No missing files. Your original documents are already present.");
+      addActivity("Restore operation completed");
+    }
+
+    if (action === "verify") {
+      const ok = data.verified === true;
+      $("verifyStatus").textContent = ok ? "Passed" : "Check";
+      notify(ok, ok ? "Verification Successful! ✓" : "Verification Needs Attention",
+        ok
+          ? "All original documents match their backup copies."
+          : "Some files are missing or differ from their backup. Check your inventory.");
+      addActivity(ok ? "Backup verification passed" : "Verification needs attention", ok);
+    }
+  
+function showSection(section, clickedItem) {
+  document.querySelectorAll(".nav-item").forEach(item => {
+    item.classList.remove("active");
+  });
+
+  clickedItem.classList.add("active");
+
+  if (section === "dashboard") {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  if (section === "documents") {
+    document.getElementById("files").scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+
+  if (section === "backup") {
+    document.querySelector(".action-list").scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+
+  if (section === "verification") {
+    document.getElementById("verifyBtn").scrollIntoView({
+      behavior: "smooth",
+      block: "center"
+    });
+  }
+}
+
+
+
+    await refreshFiles();
+  } catch {
+    notify(false, "Connection Error", "Check the server and try again.");
+  } finally {
+    buttons.forEach(id => $(id).disabled = false);
+  }
+}
+
+function filesCountFallback(formData) {
+  return formData ? [...formData.values()].filter(v => v instanceof File).length : 0;
+}
+
+refreshFiles();
+</script>
+</body>
+</html>
